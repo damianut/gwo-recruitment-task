@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Recruitment\Cart;
 
-use Recruitment\Cart\Item;
-use Recruitment\Entity\Order;
-use Recruitment\Entity\Product;
+use Recruitment\Entity\{Order, Product};
+use Recruitment\Utilities\Collection\ArrayCollection;
+use function array_keys;
+use function is_null;
+use function count;
 
 class Cart
 {
     /**
-     * Collection of items.
+     * Array of items.
      *
      * @var ArrayCollection
      */
@@ -19,7 +21,7 @@ class Cart
 
     public function __construct()
     {
-        $this->items = [];
+        $this->items = new ArrayCollection();
     }
 
     /**
@@ -30,15 +32,13 @@ class Cart
      */
     public function addProduct(Product $product, int $quantity = 1): self
     {
-        $itemsLen = count($this->items);
-        for ($i = 0; $i < $itemsLen; $i++) {
-            if ($product === $this->items[$i]->getProduct()) {
-                $this->items[$i]->setQuantity($this->items[$i]->getQuantity() + $quantity);
-                $i = $itemsLen + 1;
-            }
-        }
-        if ($i === $itemsLen) {
-            $this->items[] = new Item($product, $quantity);
+        $key = $this->getItemKeyByProduct($product);
+        if (!is_null($key)) {
+            $item = $this->items->get($key);
+            $item->setQuantity($item->getQuantity() + $quantity);
+            $this->items->set($key, $item);
+        } else {
+            $this->items->add(new Item($product, $quantity));
         }
 
         return $this;
@@ -52,49 +52,59 @@ class Cart
      */
     public function setQuantity(Product $product, int $quantity): self
     {
-        $itemsLen = count($this->items);
-        for ($i = 0; $i < $itemsLen; $i++) {
-            if ($product === $this->items[$i]->getProduct()) {
-                $this->items[$i]->setQuantity($quantity);
-                $i = $itemsLen + 1;
-            }
-        }
-
-        if ($i === $itemsLen) {
-            $this->items[] = new Item($product, $quantity);
+        $key = $this->getItemKeyByProduct($product);
+        if (!is_null($key)) {
+            $item = $this->items->get($key)->setQuantity($quantity);
+            $this->items->set($key, $item);
+        } else {
+            $this->items->add(new Item($product, $quantity));
         }
 
         return $this;
     }
 
     /**
-     * Remove Product if exists in Item from $items
+     * Remove Product if exists in Item from $this->items.
      *
      * @param Product $product
      */
     public function removeProduct(Product $product)
     {
-        $itemsLen = count($this->items);
-        for ($i = 0; $i < $itemsLen; $i++) {
-            if ($product === $this->items[$i]->getProduct()) {
-                \array_splice($this->items, $i, 1);
-                $i = $itemsLen;
-            }
+        $key = $this->getItemKeyByProduct($product);
+        if (!is_null($key)) {
+            $this->items->remove($key);
         }
     }
 
     /**
-     * Get array of items
+     * Get key of Item from $this->items depends on Product.
+     * 
+     * @param  Product $product Product which should belongs to Item
+     * @return Item key if exists, null otherwise
+     */
+    public function getItemKeyByProduct(Product $product)
+    {
+        $itemsWithProduct = $this->items->filter(function (Item $item, Product $product) {
+            return $product === $item->getProduct();
+        }, $product);
+
+        $keys = array_keys($itemsWithProduct);
+
+        return 0 != count($keys) ? $keys[0] : null;
+    }
+
+    /**
+     * Get array of items.
      *
      * @return array
      */
     public function getItems(): array
     {
-        return $this->items;
+        return $this->items->toArray();
     }
 
     /**
-     * Get Item specified by position on array
+     * Get Item specified by position on array.
      *
      * @param  int  $position
      *
@@ -102,23 +112,24 @@ class Cart
      */
     public function getItem(int $position): Item
     {
-        if (count($this->items) <= $position || 0 > $position) {
+        if ($this->items->count() <= $position || 0 > $position) {
             $msg = "Próbujesz pobrać element; który nie istnieje.";
             throw new \OutOfBoundsException($msg);
         }
 
-        return $this->items[$position];
+        return $this->items->get($position);
     }
 
     /**
-     * Total price of all items
+     * Total price of all items.
      *
      * @return int Price presented in 0,01 PLN
      */
     public function getTotalPrice(): int
     {
         $total = 0;
-        foreach ($this->items as $item) {
+        $items = $this->items->toArray();
+        foreach ($items as $item) {
             $total += $item->getTotalPrice();
         }
 
@@ -126,7 +137,7 @@ class Cart
     }
 
     /**
-     * Create Order and clear Cart
+     * Create Order and clear Cart from items.
      *
      * @param  int $id
      *
@@ -134,8 +145,8 @@ class Cart
      */
     public function checkout(int $id): Order
     {
-        $order = new Order($id, $this->items);
-        $this->items = [];
+        $order = new Order($id, $this->items->toArray());
+        $this->items->clear();
 
         return $order;
     }
