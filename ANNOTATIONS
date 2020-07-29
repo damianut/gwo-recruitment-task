@@ -1,0 +1,6 @@
+Stworzyłem klasy Recruitment\Cart\{Cart, Item} oraz Recruitment\Entity\{Order, Product} tak; aby zdały testy.
+Jednak przeniósłbym część metod do osobnych klas; chociażby taką jak Cart::checkout(). 
+Klasa Cart nie powinna zajmować się tworzeniem instancji Order; jest to niezgodne z SRP.
+
+
+/*....................................................................................................................*/
