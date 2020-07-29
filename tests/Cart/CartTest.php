@@ -120,8 +120,8 @@ class CartTest extends TestCase
     public function itClearsCartAfterCheckout(): void
     {
         $cart = new Cart();
-        $cart->addProduct($this->buildTestProduct(1, 15000));
-        $cart->addProduct($this->buildTestProduct(2, 10000), 2);
+        $cart->addProduct($this->buildTestProduct(1, 15000, 8));
+        $cart->addProduct($this->buildTestProduct(2, 10000, 5), 2);
 
         $order = $cart->checkout(7);
 
@@ -129,9 +129,9 @@ class CartTest extends TestCase
         $this->assertEquals(0, $cart->getTotalPrice());
         $this->assertInstanceOf(Order::class, $order);
         $this->assertEquals(['id' => 7, 'items' => [
-            ['id' => 1, 'quantity' => 1, 'total_price' => 15000],
-            ['id' => 2, 'quantity' => 2, 'total_price' => 20000],
-        ], 'total_price' => 35000], $order->getDataForView());
+            ['id' => 1, 'quantity' => 1, 'tax' => 8, 'total_price' => 15000, 'total_price_gross' => 16200],
+            ['id' => 2, 'quantity' => 2, 'tax' => 5, 'total_price' => 20000, 'total_price_gross' => 21000],
+        ], 'total_price' => 35000, 'total_price_gross' => 37200], $order->getDataForView());
     }
 
     public function getNonExistentItemIndexes(): array
@@ -144,8 +144,8 @@ class CartTest extends TestCase
         ];
     }
 
-    private function buildTestProduct(int $id, int $price): Product
+    private function buildTestProduct(int $id, int $price, ?int $tax = null): Product
     {
-        return (new Product())->setId($id)->setUnitPrice($price);
+        return (new Product())->setId($id)->setUnitPrice($price)->setTax($tax);
     }
 }

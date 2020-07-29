@@ -85,4 +85,14 @@ class Item
     {
         return $this->quantity * $this->product->getUnitPrice();
     }
+
+    /**
+     * Total gross price
+     *
+     * @return int Gross price presented in 0,01 PLN
+     */
+    public function getTotalPriceGross(): int
+    {
+        return (int) ($this->getTotalPrice() * ((100 + $this->product->getTax()) / 100));
+    }
 }

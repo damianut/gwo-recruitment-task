@@ -13,7 +13,7 @@ class Cart
     /**
      * Collection of items.
      *
-     * @var ArrayCollection
+     * @var Array
      */
     private $items;
 
@@ -111,7 +111,7 @@ class Cart
     }
 
     /**
-     * Total price of all items
+     * Get total price of all items
      *
      * @return int Price presented in 0,01 PLN
      */
@@ -120,6 +120,21 @@ class Cart
         $total = 0;
         foreach ($this->items as $item) {
             $total += $item->getTotalPrice();
+        }
+
+        return $total;
+    }
+
+    /**
+     * Get total gross price of all items
+     *
+     * @return int Gross price presented in 0,01 PLN
+     */
+    public function getTotalPriceGross(): int
+    {
+        $total = 0;
+        foreach ($this->items as $item) {
+            $total += $item->getTotalPriceGross();
         }
 
         return $total;

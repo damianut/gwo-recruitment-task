@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Recruitment\Entity;
 
-use Recruitment\Entity\Exception\InvalidUnitPriceException;
+use Recruitment\Entity\Exception\{InvalidTaxRateException, InvalidUnitPriceException};
+use function in_array;
+use function is_null;
 
 class Product
 {
@@ -30,6 +32,14 @@ class Product
     private $unitPrice;
 
     /**
+     * Tax rate. Allowed values: 0, 5, 8, 23.
+     * In calculations, prices are treated as percents.
+     * 
+     * @var int
+     */
+    private $tax;
+
+    /**
      * Minimum quantity of product.
      *
      * @var int
@@ -40,17 +50,20 @@ class Product
      * @param int    $id              ID of product
      * @param string $name            Product name
      * @param int    $unitPrice       Product unit price
+     * @param int    $tax             Tax rate
      * @param int    $minimumQuantity Minimum quantity of product in order
      */
     public function __construct(
         ?int $id = null,
         ?string $name = null,
         ?int $unitPrice = null,
+        ?int $tax = null,
         int $minimumQuantity = 1
     ) {
         $this->setId($id)
             ->setName($name)
             ->setUnitPrice($unitPrice)
+            ->setTax($tax)
             ->setMinimumQuantity($minimumQuantity);
     }
 
@@ -95,6 +108,26 @@ class Product
     public function getUnitPrice(): ?int
     {
         return $this->unitPrice;
+    }
+
+    /**
+     * @throws \InvalidTaxRateException When $tax has another value than: 0, 5, 8 and 23
+     *                                  Unsetting tax by assignment NULL is allowed.
+     */
+    public function setTax(?int $tax): self
+    {
+        if (!is_null($tax) && !in_array($tax, [0, 5, 8, 23], true)) {
+            $msg = "Stawka podatku VAT może wynosić 0, 5, 8 lub 23 (procent).";
+            throw new InvalidTaxRateException($msg);
+        }
+        $this->tax = $tax;
+
+        return $this;
+    }
+
+    public function getTax(): ?int
+    {
+        return $this->tax;
     }
 
     /**

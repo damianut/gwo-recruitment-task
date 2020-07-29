@@ -37,20 +37,26 @@ class Order
     {
         $itemsView = [];
         $totalPrice = 0;
+        $totalPriceGross = 0;
         foreach ($this->items as $item) {
             $itemTotalPrice = $item->getTotalPrice();
+            $itemTotalPriceGross = $item->getTotalPriceGross();
             $itemsView[] = [
                 'id' => $item->getProduct()->getId(),
                 'quantity' => $item->getQuantity(),
+                'tax' => $item->getProduct()->getTax(),
                 'total_price' => $itemTotalPrice,
+                'total_price_gross' => $itemTotalPriceGross,
             ];
             $totalPrice += $itemTotalPrice;
+            $totalPriceGross += $itemTotalPriceGross;
         }
 
         return [
             'id' => $this->id,
             'items' => $itemsView,
             'total_price' => $totalPrice,
+            'total_price_gross' => $totalPriceGross,
         ];
     }
 }
