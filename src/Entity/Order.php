@@ -29,7 +29,7 @@ class Order
     }
 
     /**
-     * Return information about Order
+     * Prepare data for view (view understood as in architectural pattern MVC)
      *
      * @return array
      */
