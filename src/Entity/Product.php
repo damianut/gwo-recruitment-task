@@ -46,12 +46,12 @@ class Product
         ?int $id = null,
         ?string $name = null,
         ?int $unitPrice = null,
-        ?int $minimumQuantity = null
+        int $minimumQuantity = 1
     ) {
-        $this->setId($id);
-        $this->setName($name);
-        $this->setUnitPrice($unitPrice);
-        $this->setMinimumQuantity($minimumQuantity ?? 1);
+        $this->setId($id)
+            ->setName($name)
+            ->setUnitPrice($unitPrice)
+            ->setMinimumQuantity($minimumQuantity);
     }
 
     public function setId(?int $id): self
